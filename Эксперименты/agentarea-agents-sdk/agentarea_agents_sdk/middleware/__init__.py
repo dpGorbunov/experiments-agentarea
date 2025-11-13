@@ -3,6 +3,7 @@
 from .base import Middleware, MiddlewareStack
 from .filesystem import FilesystemMiddleware
 from .state import InMemoryState, StateBackend
+from .summarization import SummarizationMiddleware
 from .todolist import TodoListMiddleware
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "InMemoryState",
     "TodoListMiddleware",
     "FilesystemMiddleware",
+    "SummarizationMiddleware",
 ]
