@@ -52,7 +52,19 @@ class TodoListMiddleware:
 
             # Skip actual tool execution (no-op tool)
             tool_call["_skip_execution"] = True
-            tool_call["_result"] = {"success": True, "todos_count": len(todos)}
+
+            # Format informative message for agent
+            todos_summary = "\n".join([
+                f"- [{todo['status']}] {todo['content']}"
+                for todo in todos
+            ])
+            result_message = f"Updated todo list ({len(todos)} tasks):\n{todos_summary}"
+
+            tool_call["_result"] = {
+                "success": True,
+                "todos_count": len(todos),
+                "result": result_message  # ← Agent sees this in messages
+            }
 
             # Return state updates
             return tool_call, {"todos": todos}
