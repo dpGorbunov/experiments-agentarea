@@ -87,6 +87,12 @@ class ContextEvictionMiddleware:
         if 'files' not in state:
             state['files'] = {}
 
+    async def after_llm_call(self, state: dict, response: Any):
+        pass
+
+    async def before_tool_call(self, tool_call: dict, state: dict):
+        return tool_call
+
     async def after_tool_call(self, tool_call: dict, result: Any, state: dict):
         if isinstance(result, str) and len(result) > self.threshold:
             # Evict!
@@ -108,6 +114,9 @@ class ContextEvictionMiddleware:
 class TodoTrackingMiddleware:
     """Демо TODO tracking."""
 
+    async def before_llm_call(self, state: dict):
+        pass
+
     async def before_tool_call(self, tool_call: dict, state: dict):
         if tool_call.get('name') == 'write_todos':
             todos = tool_call.get('arguments', {}).get('todos', [])
@@ -122,6 +131,9 @@ class TodoTrackingMiddleware:
             completed = len([t for t in todos if t.get('status') == 'completed'])
             total = len(todos)
             print(f"[TODO] Progress: {completed}/{total} completed")
+
+    async def after_tool_call(self, tool_call: dict, result: Any, state: dict):
+        return result
 
 
 # ============================================================================
