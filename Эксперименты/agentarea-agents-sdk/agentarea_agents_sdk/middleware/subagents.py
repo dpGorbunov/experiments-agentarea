@@ -85,6 +85,13 @@ Available agent types and the tools they have access to:
 
 When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.
 
+## Example Usage
+
+task(
+    description="Search the codebase for StatefulAgent implementation. Analyze the middleware types, their integration points, execution order, and suggest one improvement. Return a detailed report with your findings.",
+    subagent_type="general-purpose"
+)
+
 ## Usage notes:
 1. Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses
 2. When the agent is done, it will return a single message back to you. The result returned by the agent is not visible to the user. To show the user the result, you should send a text message back to the user with a concise summary of the result.
