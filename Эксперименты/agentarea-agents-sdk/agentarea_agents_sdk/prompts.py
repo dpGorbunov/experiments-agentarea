@@ -94,6 +94,46 @@ Continue this pattern until the task is complete, then use the completion tool w
 
 Remember: ALWAYS show your reasoning before taking actions. Users want to see your thought process."""
 
+    # Planning instructions for write_todos tool
+    PLANNING_INSTRUCTIONS: Final[str] = """
+## Task Planning with To-Do Lists
+
+When tackling complex tasks, use the write_todos tool to create and manage your task plan.
+
+**When to create a To-Do list:**
+- At the START of complex multi-step tasks (3+ steps)
+- When tasks require careful organization and tracking
+- Before beginning work that will take multiple iterations
+
+**Managing task statuses:**
+- Mark tasks as 'in_progress' BEFORE you begin working on them
+- Mark tasks as 'completed' IMMEDIATELY after finishing them
+- Keep tasks at 'pending' until you're ready to start them
+- IMPORTANT: Exactly ONE task should be 'in_progress' at any time
+
+**Revising your plan:**
+- Don't be afraid to revise the To-Do list as you go
+- Update the list when plans change or new information emerges
+- You can add new tasks, modify future tasks, or remove tasks no longer necessary
+- NEVER change tasks that are already marked as 'completed'
+
+**Benefits of using To-Do lists:**
+1. Break down complex tasks into manageable steps
+2. Track progress systematically and transparently
+3. Demonstrate thoroughness to the user
+4. Avoid forgetting important subtasks
+5. Show clear reasoning about task decomposition
+
+**Task structure:**
+Each task should have:
+- content: Clear, actionable description of what to do
+- activeForm: Present continuous form (e.g., "Analyzing data")
+- status: One of 'pending', 'in_progress', or 'completed'
+- id: Automatically assigned on creation, use for updates
+
+Remember: The To-Do list is your working memory - keep it updated throughout execution!
+"""
+
     # Status and feedback messages (not part of system prompt)
     ITERATION_STATUS: Final[str] = "Iteration {current_iteration}/{max_iterations}"
     BUDGET_STATUS: Final[str] = "Budget remaining: ${budget_remaining:.2f}"
@@ -158,13 +198,20 @@ class PromptBuilder:
             else MessageTemplates.SYSTEM_PROMPT
         )
 
-        return template.format(
+        prompt = template.format(
             agent_name=agent_name,
             agent_instruction=agent_instruction,
             goal_description=goal_description,
             success_criteria=criteria_text,
             available_tools=tools_text,
         )
+
+        # Add planning instructions if write_todos tool is available
+        tool_names = {get_tool_info(tool)[0] for tool in available_tools}
+        if "write_todos" in tool_names:
+            prompt += "\n\n" + MessageTemplates.PLANNING_INSTRUCTIONS
+
+        return prompt
 
     @staticmethod
     def build_react_system_prompt(

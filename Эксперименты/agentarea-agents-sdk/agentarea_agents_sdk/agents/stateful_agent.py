@@ -49,6 +49,9 @@ class StatefulAgent:
 
         if include_default_tools:
             self.tool_executor.registry.register(CompletionTool())
+            # Import here to avoid circular dependency
+            from ..tools.write_todos_tool import WriteTodosTool
+            self.tool_executor.registry.register(WriteTodosTool())
 
         if tools:
             for tool in tools:
