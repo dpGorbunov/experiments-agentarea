@@ -6,7 +6,11 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 from ..middleware.base import Middleware, MiddlewareStack
+from ..middleware.filesystem import FilesystemMiddleware
 from ..middleware.state import InMemoryState, StateBackend
+from ..middleware.subagents import SubAgentMiddleware
+from ..middleware.summarization import SummarizationMiddleware
+from ..middleware.todolist import TodoListMiddleware
 from ..models.llm_model import LLMModel, LLMRequest
 from ..prompts import PromptBuilder, ToolInfo
 from ..tools.completion_tool import CompletionTool
@@ -32,12 +36,48 @@ class StatefulAgent:
         include_default_tools: bool = True,
         middlewares: list[Middleware] | None = None,
         state_backend: StateBackend | None = None,
+        # Middleware configuration
+        enable_default_middleware: bool = True,
+        enable_todolist: bool = True,
+        enable_filesystem: bool = True,
+        enable_subagents: bool = True,
+        enable_summarization: bool = True,
+        subagents: list[dict[str, Any]] | None = None,
+        max_tokens_before_summary: int = 50_000,
+        messages_to_keep: int = 6,
     ):
+        """Initialize StatefulAgent with middleware support.
+
+        Args:
+            name: Agent name
+            instruction: Agent system instruction
+            model_provider: LLM provider (e.g., "ollama_chat")
+            model_name: Model name (e.g., "qwen2.5:3b")
+            endpoint_url: Optional endpoint URL
+            temperature: Sampling temperature
+            max_tokens: Max tokens per generation
+            max_iterations: Max agent loop iterations
+            tools: Additional tools to register
+            include_default_tools: Include CompletionTool and WriteTodosTool
+            middlewares: Additional custom middlewares
+            state_backend: State backend (defaults to InMemoryState)
+            enable_default_middleware: Enable default Deep Agents middleware stack
+            enable_todolist: Enable TodoListMiddleware
+            enable_filesystem: Enable FilesystemMiddleware
+            enable_subagents: Enable SubAgentMiddleware
+            enable_summarization: Enable SummarizationMiddleware
+            subagents: List of subagent configurations for SubAgentMiddleware
+            max_tokens_before_summary: Token threshold for summarization
+            messages_to_keep: Number of recent messages to keep after summarization
+        """
         self.name = name
         self.instruction = instruction
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.max_iterations = max_iterations
+        self.model_provider = model_provider
+        self.model_name = model_name
+        self.endpoint_url = endpoint_url
 
         self.model = LLMModel(
             provider_type=model_provider,
@@ -58,7 +98,80 @@ class StatefulAgent:
                 self.tool_executor.registry.register(tool)
 
         self.state = state_backend or InMemoryState()
-        self.middlewares = MiddlewareStack(middlewares or [])
+
+        # Build middleware stack similar to Deep Agents
+        default_middlewares: list[Middleware] = []
+
+        if enable_default_middleware:
+            # 1. TodoListMiddleware (managed by WriteTodosTool + TodoListMiddleware)
+            if enable_todolist:
+                default_middlewares.append(TodoListMiddleware())
+
+            # 2. FilesystemMiddleware (context eviction)
+            if enable_filesystem:
+                default_middlewares.append(FilesystemMiddleware())
+
+            # 3. SubAgentMiddleware (task delegation)
+            if enable_subagents:
+                # SubAgentMiddleware needs recursive middleware for subagents
+                subagent_middleware = [
+                    TodoListMiddleware(),
+                    FilesystemMiddleware(),
+                    SummarizationMiddleware(
+                        model_provider=model_provider,
+                        model_name=model_name,
+                        endpoint_url=endpoint_url,
+                        max_tokens_before_summary=max_tokens_before_summary,
+                        messages_to_keep=messages_to_keep,
+                    ),
+                ]
+
+                # Default kwargs for subagents
+                default_agent_kwargs = {
+                    "name": "subagent",
+                    "instruction": "You are a helpful assistant that completes tasks autonomously.",
+                    "model_provider": model_provider,
+                    "model_name": model_name,
+                    "endpoint_url": endpoint_url,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "max_iterations": max_iterations,
+                    "tools": tools,
+                    "include_default_tools": True,
+                    "middlewares": subagent_middleware,
+                    "enable_default_middleware": False,  # Subagent uses explicit middleware
+                }
+
+                default_middlewares.append(
+                    SubAgentMiddleware(
+                        default_agent_class=StatefulAgent,
+                        default_agent_kwargs=default_agent_kwargs,
+                        subagents=subagents or [],
+                        general_purpose_agent=True,
+                    )
+                )
+
+            # 4. SummarizationMiddleware (token management)
+            if enable_summarization:
+                default_middlewares.append(
+                    SummarizationMiddleware(
+                        model_provider=model_provider,
+                        model_name=model_name,
+                        endpoint_url=endpoint_url,
+                        max_tokens_before_summary=max_tokens_before_summary,
+                        messages_to_keep=messages_to_keep,
+                    )
+                )
+
+        # Combine default + custom middlewares
+        all_middlewares = default_middlewares + (middlewares or [])
+        self.middlewares = MiddlewareStack(all_middlewares)
+
+        # Register tools from middleware (e.g., TaskTool from SubAgentMiddleware)
+        for middleware in all_middlewares:
+            if hasattr(middleware, "get_tools"):
+                for tool in middleware.get_tools():
+                    self.tool_executor.registry.register(tool)
 
     def _build_system_prompt(self, goal: str, success_criteria: list[str] | None = None) -> str:
         available_tools: list[ToolInfo] = []
@@ -80,13 +193,24 @@ class StatefulAgent:
                 "Complete the task successfully",
             ]
 
-        return PromptBuilder.build_react_system_prompt(
+        base_prompt = PromptBuilder.build_react_system_prompt(
             agent_name=self.name,
             agent_instruction=self.instruction,
             goal_description=goal,
             success_criteria=success_criteria,
             available_tools=available_tools,
         )
+
+        # Collect additional system prompts from middleware
+        middleware_prompts = []
+        for middleware in self.middlewares.middlewares:
+            if hasattr(middleware, "system_prompt"):
+                middleware_prompts.append(middleware.system_prompt)
+
+        if middleware_prompts:
+            return base_prompt + "\n\n" + "\n\n".join(middleware_prompts)
+
+        return base_prompt
 
     async def _execute_agent_loop(
         self,
