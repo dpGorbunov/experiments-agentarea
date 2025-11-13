@@ -7,7 +7,7 @@ name = "agentarea-agents-sdk"
 version = "0.0.1"
 description = "Independent Agent SDK for AgentArea - agentic AI components"
 license = {text = "EPL-2.0"}
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "litellm>=1.74.15",
     "pydantic>=2.4.2",

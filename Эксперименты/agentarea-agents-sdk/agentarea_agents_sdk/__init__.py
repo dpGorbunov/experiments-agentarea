@@ -13,6 +13,7 @@ This follows patterns from leading agentic frameworks like AutoGen, CrewAI, and 
 # High-level Agent class (recommended for most users)
 from .agents.agent import Agent
 from .agents.basic_agent import run_agent  # noqa: F401
+from .agents.stateful_agent import StatefulAgent
 from .context.context_service import (
     ContextEvent,
     ContextService,
@@ -22,6 +23,9 @@ from .context.context_service import (
 
 # Services
 from .goal.goal_progress_evaluator import GoalProgressEvaluator
+
+# Middleware
+from .middleware import InMemoryState, Middleware, MiddlewareStack, StateBackend
 
 # LLM Model
 from .models.llm_model import LLMModel, LLMRequest, LLMResponse, LLMUsage
@@ -49,6 +53,12 @@ from .tools.tool_manager import ToolManager
 __all__ = [
     # High-level Agent (recommended)
     "Agent",
+    "StatefulAgent",
+    # Middleware
+    "Middleware",
+    "MiddlewareStack",
+    "StateBackend",
+    "InMemoryState",
     # LLM Components
     "LLMModel",
     "LLMRequest",
