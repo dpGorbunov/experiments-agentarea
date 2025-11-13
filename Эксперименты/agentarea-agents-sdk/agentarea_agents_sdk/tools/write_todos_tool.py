@@ -76,6 +76,33 @@ It is important to skip using this tool when:
    - Break complex tasks into smaller, manageable steps
    - Use clear, descriptive task names
 
+## Example Usage
+
+For a 4-step task like "Analyze StatefulAgent: list middleware, explain integration, identify order, suggest improvement":
+
+write_todos(todos=[
+    {
+        "content": "List all middleware types used in StatefulAgent",
+        "activeForm": "Listing middleware types",
+        "status": "in_progress"
+    },
+    {
+        "content": "Explain how each middleware integrates",
+        "activeForm": "Analyzing middleware integration",
+        "status": "pending"
+    },
+    {
+        "content": "Identify the order of middleware execution",
+        "activeForm": "Determining execution order",
+        "status": "pending"
+    },
+    {
+        "content": "Suggest one improvement to the architecture",
+        "activeForm": "Formulating improvement suggestion",
+        "status": "pending"
+    }
+])
+
 Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.
 Remember: If you only need to make a few tool calls to complete a task, and it is clear what you need to do, it is better to just do the task directly and NOT call this tool at all."""
 
