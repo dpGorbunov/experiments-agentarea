@@ -99,9 +99,18 @@ Remember: ALWAYS show your reasoning before taking actions. Users want to see yo
     # Original work Copyright (c) LangChain, Inc. under MIT License
     PLANNING_INSTRUCTIONS: Final[str] = """## `write_todos`
 
-You have access to the `write_todos` tool to help you manage and plan complex objectives.
+You have access to the `write_todos` tool to RECORD your plan for complex objectives.
+
+IMPORTANT: YOU must create the plan yourself by analyzing the task and breaking it down into specific steps. The write_todos tool only RECORDS what YOU decided - it does NOT create the plan for you.
+
+Your planning process:
+1. YOU analyze the task and identify all distinct steps needed
+2. YOU break down each step into a clear, actionable item
+3. YOU decide which step to start first (mark as "in_progress")
+4. YOU call write_todos() with YOUR plan (the complete list of todos)
+5. The tool records your plan so you can track progress
+
 Use this tool for complex objectives to ensure that you are tracking each necessary step and giving the user visibility into your progress.
-This tool is very helpful for planning complex objectives, and for breaking down these larger complex objectives into smaller steps.
 
 It is critical that you mark todos as completed as soon as you are done with a step. Do not batch up multiple steps before marking them as completed.
 For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.

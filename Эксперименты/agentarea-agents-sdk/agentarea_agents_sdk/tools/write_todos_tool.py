@@ -19,7 +19,11 @@ class WriteTodosTool(BaseTool):
 
     @property
     def description(self) -> str:
-        return """Use this tool to create and manage a structured task list for your current work session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
+        return """Use this tool to RECORD the structured task list that YOU created for your current work session.
+
+IMPORTANT: YOU must create the plan by analyzing the task. This tool only RECORDS your plan - it does NOT create or generate the plan for you.
+
+Process: Analyze task → Break into steps → Call write_todos() with YOUR list of steps → Tool records it.
 
 Only use this tool if you think it will be helpful in staying organized. If the user's request is trivial and takes less than 3 steps, it is better to NOT use this tool and just do the task directly.
 
