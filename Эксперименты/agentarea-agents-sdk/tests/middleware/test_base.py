@@ -16,18 +16,20 @@ class MockMiddleware:
 
     async def before_llm_call(self, state):
         self.before_llm_called = True
-        state["test"] = "value"
+        # Return state updates
+        return {"test": "value"}
 
     async def after_llm_call(self, state, response):
         self.after_llm_called = True
+        return None
 
     async def before_tool_call(self, tool_call, state):
         self.before_tool_called = True
-        return tool_call
+        return tool_call, None
 
     async def after_tool_call(self, tool_call, result, state):
         self.after_tool_called = True
-        return result
+        return result, None
 
 
 @pytest.mark.unit

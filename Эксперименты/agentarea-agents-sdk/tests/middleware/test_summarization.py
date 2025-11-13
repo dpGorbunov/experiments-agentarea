@@ -16,8 +16,10 @@ async def test_no_summarization_below_threshold():
         ]
     }
 
-    await mw.before_llm_call(state)
+    updates = await mw.before_llm_call(state)
 
+    # No updates means no summarization
+    assert updates is None
     assert len(state["messages"]) == 3
 
 
@@ -38,7 +40,11 @@ async def test_summarization_above_threshold():
         ]
     }
 
-    await mw.before_llm_call(state)
+    updates = await mw.before_llm_call(state)
+
+    # Apply updates
+    if updates:
+        state.update(updates)
 
     # Should have: system + summary + 2 recent
     assert len(state["messages"]) == 4

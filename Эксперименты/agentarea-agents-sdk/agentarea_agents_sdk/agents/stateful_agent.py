@@ -121,8 +121,8 @@ class StatefulAgent:
             iteration += 1
             self.state.set("iteration", iteration)
 
-            # Before LLM
-            await self.middlewares.run_before_llm(self.state.snapshot())
+            # Before LLM - pass state._data directly for mutations
+            await self.middlewares.run_before_llm(self.state._data)
 
             messages = self.state.get("messages", [])
             request = LLMRequest(
@@ -158,7 +158,7 @@ class StatefulAgent:
                     self.tool_calls = tool_calls
 
             await self.middlewares.run_after_llm(
-                self.state.snapshot(), MockResponse(full_content, final_tool_calls)
+                self.state._data, MockResponse(full_content, final_tool_calls)
             )
 
             if final_tool_calls:
@@ -181,17 +181,21 @@ class StatefulAgent:
                             "function": {"name": tool_name, "arguments": tool_args},
                         }
                         tool_call_dict = await self.middlewares.run_before_tool(
-                            tool_call_dict, self.state.snapshot()
+                            tool_call_dict, self.state._data
                         )
 
-                        result = await self.tool_executor.execute_tool(tool_name, tool_args)
+                        # Check if middleware wants to skip execution
+                        if tool_call_dict.get("_skip_execution"):
+                            result = tool_call_dict.get("_result", {"success": True})
+                        else:
+                            result = await self.tool_executor.execute_tool(tool_name, tool_args)
 
                         if tool_name == "completion":
                             done = True
 
                         # After tool
                         result = await self.middlewares.run_after_tool(
-                            tool_call_dict, result, self.state.snapshot()
+                            tool_call_dict, result, self.state._data
                         )
 
                         tool_result = str(result.get("result", result))

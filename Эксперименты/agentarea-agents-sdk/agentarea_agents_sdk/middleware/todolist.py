@@ -1,5 +1,6 @@
 """TodoList middleware for live task planning."""
 
+from typing import Any
 from uuid import UUID
 
 from ..tasks.task_service import InMemoryTaskService
@@ -12,13 +13,15 @@ class TodoListMiddleware:
     def __init__(self):
         self.task_service = InMemoryTaskService()
 
-    async def before_llm_call(self, state: dict):
-        pass
+    async def before_llm_call(self, state: dict) -> dict[str, Any] | None:
+        return None
 
-    async def after_llm_call(self, state: dict, response):
-        pass
+    async def after_llm_call(self, state: dict, response) -> dict[str, Any] | None:
+        return None
 
-    async def before_tool_call(self, tool_call: dict, state: dict):
+    async def before_tool_call(
+        self, tool_call: dict, state: dict
+    ) -> tuple[dict, dict[str, Any] | None]:
         if tool_call.get("function", {}).get("name") == "write_todos":
             todos = tool_call.get("function", {}).get("arguments", {}).get("todos", [])
 
@@ -38,10 +41,16 @@ class TodoListMiddleware:
                     )
                     todo["id"] = str(task.id)
 
-            # Update state
-            state["todos"] = todos
+            # Skip actual tool execution (no-op tool)
+            tool_call["_skip_execution"] = True
+            tool_call["_result"] = {"success": True, "todos_count": len(todos)}
 
-        return tool_call
+            # Return state updates
+            return tool_call, {"todos": todos}
 
-    async def after_tool_call(self, tool_call: dict, result, state: dict):
-        return result
+        return tool_call, None
+
+    async def after_tool_call(
+        self, tool_call: dict, result: Any, state: dict
+    ) -> tuple[Any, dict[str, Any] | None]:
+        return result, None

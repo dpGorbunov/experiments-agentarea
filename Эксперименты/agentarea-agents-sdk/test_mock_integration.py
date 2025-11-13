@@ -60,10 +60,12 @@ async def simulate_agent_execution():
         }
     }
 
-    await todo_mw.before_tool_call(tool_call, state)
+    tool_call, updates = await todo_mw.before_tool_call(tool_call, state)
+    if updates:
+        state.update(updates)
 
-    print(f"✓ Created {len(state['todos'])} todos")
-    for todo in state["todos"]:
+    print(f"✓ Created {len(state.get('todos', []))} todos")
+    for todo in state.get("todos", []):
         print(f"  ☐ {todo['content']} [{todo['status']}]")
 
     # ====== ITERATION 2: Large result eviction ======
@@ -73,11 +75,13 @@ async def simulate_agent_execution():
     large_result = "x" * 500  # Exceeds eviction_threshold=100
     tool_call = {"id": "search_1", "function": {"name": "grep_search"}}
 
-    result = await fs_mw.after_tool_call(tool_call, large_result, state)
+    result, updates = await fs_mw.after_tool_call(tool_call, large_result, state)
+    if updates:
+        state.update(updates)
 
-    if result.get("evicted"):
+    if isinstance(result, dict) and result.get("evicted"):
         print(f"✓ Large result ({result['original_size']} chars) evicted to {result['file_path']}")
-        print(f"  Virtual FS now has {len(state['files'])} files")
+        print(f"  Virtual FS now has {len(state.get('files', {}))} files")
 
     # ====== ITERATION 3-10: Update TODO statuses ======
     print("\nIterations 3-10: Working through tasks...")
@@ -110,7 +114,9 @@ async def simulate_agent_execution():
     state["iteration"] = 11
 
     initial_msg_count = len(state["messages"])
-    await sum_mw.before_llm_call(state)
+    updates = await sum_mw.before_llm_call(state)
+    if updates:
+        state.update(updates)
 
     if state.get("summarization_count", 0) > 0:
         print(

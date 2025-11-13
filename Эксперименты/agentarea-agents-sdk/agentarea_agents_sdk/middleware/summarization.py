@@ -25,11 +25,11 @@ class SummarizationMiddleware:
         self.max_tokens = max_tokens
         self.keep_last = keep_last
 
-    async def before_llm_call(self, state: dict):
+    async def before_llm_call(self, state: dict) -> dict[str, Any] | None:
         messages = state.get("messages", [])
 
         if len(messages) <= self.keep_last + 1:
-            return
+            return None
 
         token_count = count_messages_tokens(messages)
 
@@ -64,19 +64,29 @@ class SummarizationMiddleware:
             new_messages.append(summary_msg)
             new_messages.extend(recent)
 
-            state["messages"] = new_messages
-            state["summarization_count"] = state.get("summarization_count", 0) + 1
+            new_token_count = count_messages_tokens(new_messages)
 
             print(
-                f"\n[SUMMARIZATION] {token_count} tokens → {count_messages_tokens(new_messages)} tokens "
+                f"\n[SUMMARIZATION] {token_count} tokens → {new_token_count} tokens "
                 f"({len(old)} messages summarized, keeping last {self.keep_last})\n"
             )
 
-    async def after_llm_call(self, state: dict, response: Any):
-        pass
+            return {
+                "messages": new_messages,
+                "summarization_count": state.get("summarization_count", 0) + 1,
+            }
 
-    async def before_tool_call(self, tool_call: dict, state: dict):
-        return tool_call
+        return None
 
-    async def after_tool_call(self, tool_call: dict, result: Any, state: dict):
-        return result
+    async def after_llm_call(self, state: dict, response: Any) -> dict[str, Any] | None:
+        return None
+
+    async def before_tool_call(
+        self, tool_call: dict, state: dict
+    ) -> tuple[dict, dict[str, Any] | None]:
+        return tool_call, None
+
+    async def after_tool_call(
+        self, tool_call: dict, result: Any, state: dict
+    ) -> tuple[Any, dict[str, Any] | None]:
+        return result, None
