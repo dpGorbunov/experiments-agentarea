@@ -112,6 +112,18 @@ Your planning process:
 
 Use this tool for complex objectives to ensure that you are tracking each necessary step and giving the user visibility into your progress.
 
+## Workflow: Plan → Execute → Update
+
+After creating your plan, you MUST work through it:
+
+1. Create plan with first task marked as "in_progress"
+2. WORK on that in_progress task (use tools, analyze, gather info, etc.)
+3. When task is done → call write_todos() to mark it "completed" and mark next as "in_progress"
+4. WORK on the new in_progress task
+5. Repeat until all tasks completed
+
+CRITICAL: Don't just create a plan and stop! You must EXECUTE the plan step-by-step, updating status after each task.
+
 It is critical that you mark todos as completed as soon as you are done with a step. Do not batch up multiple steps before marking them as completed.
 For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.
 Writing todos takes time and tokens, use it when it is helpful for managing complex many-step problems! But not for simple few-step requests.
