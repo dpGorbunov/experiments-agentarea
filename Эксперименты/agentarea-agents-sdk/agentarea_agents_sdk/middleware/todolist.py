@@ -25,6 +25,15 @@ class TodoListMiddleware:
         if tool_call.get("function", {}).get("name") == "write_todos":
             todos = tool_call.get("function", {}).get("arguments", {}).get("todos", [])
 
+            # Validate: reject empty todos array
+            if not todos or len(todos) == 0:
+                tool_call["_skip_execution"] = True
+                tool_call["_result"] = {
+                    "success": False,
+                    "error": "Empty todos array. You must create the plan yourself by analyzing the task and breaking it into specific steps. The write_todos tool only RECORDS your plan - it does not create the plan for you. Please call write_todos() with a complete list of todos that YOU created."
+                }
+                return tool_call, None
+
             # Sync with TaskService
             for todo in todos:
                 if "id" in todo and todo["id"]:
