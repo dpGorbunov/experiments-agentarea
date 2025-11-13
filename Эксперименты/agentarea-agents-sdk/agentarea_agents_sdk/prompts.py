@@ -96,42 +96,61 @@ Remember: ALWAYS show your reasoning before taking actions. Users want to see yo
 
     # Planning instructions for write_todos tool
     PLANNING_INSTRUCTIONS: Final[str] = """
-## Task Planning with To-Do Lists
+## `write_todos`
 
-When tackling complex tasks, use the write_todos tool to create and manage your task plan.
+You have access to the `write_todos` tool to help you manage and plan complex objectives.
+Use this tool for complex objectives to ensure that you are tracking each necessary step and giving the user visibility into your progress.
+This tool is very helpful for planning complex objectives, and for breaking down these larger complex objectives into smaller steps.
 
-**When to create a To-Do list:**
-- At the START of complex multi-step tasks (3+ steps)
-- When tasks require careful organization and tracking
-- Before beginning work that will take multiple iterations
+It is critical that you mark todos as completed as soon as you are done with a step. Do not batch up multiple steps before marking them as completed.
+For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.
+Writing todos takes time and tokens, use it when it is helpful for managing complex many-step problems! But not for simple few-step requests.
 
-**Managing task statuses:**
-- Mark tasks as 'in_progress' BEFORE you begin working on them
-- Mark tasks as 'completed' IMMEDIATELY after finishing them
-- Keep tasks at 'pending' until you're ready to start them
-- IMPORTANT: Exactly ONE task should be 'in_progress' at any time
+## When to Use This Tool
 
-**Revising your plan:**
-- Don't be afraid to revise the To-Do list as you go
-- Update the list when plans change or new information emerges
-- You can add new tasks, modify future tasks, or remove tasks no longer necessary
-- NEVER change tasks that are already marked as 'completed'
+Use this tool in these scenarios:
+1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions
+2. Non-trivial and complex tasks - Tasks that require careful planning or multiple operations
+3. User explicitly requests todo list - When the user directly asks you to use the todo list
+4. User provides multiple tasks - When users provide a list of things to be done (numbered or comma-separated)
+5. The plan may need future revisions or updates based on results from the first few steps
 
-**Benefits of using To-Do lists:**
-1. Break down complex tasks into manageable steps
-2. Track progress systematically and transparently
-3. Demonstrate thoroughness to the user
-4. Avoid forgetting important subtasks
-5. Show clear reasoning about task decomposition
+## How to Use This Tool
 
-**Task structure:**
-Each task should have:
-- content: Clear, actionable description of what to do
-- activeForm: Present continuous form (e.g., "Analyzing data")
-- status: One of 'pending', 'in_progress', or 'completed'
-- id: Automatically assigned on creation, use for updates
+1. When you start working on a task - Mark it as in_progress BEFORE beginning work.
+2. After completing a task - Mark it as completed and add any new follow-up tasks discovered during implementation.
+3. You can also update future tasks, such as deleting them if they are no longer necessary, or adding new tasks that are necessary. Don't change previously completed tasks.
+4. You can make several updates to the todo list at once. For example, when you complete a task, you can mark the next task you need to start as in_progress.
 
-Remember: The To-Do list is your working memory - keep it updated throughout execution!
+## Task States and Management
+
+1. **Task States**: Use these states to track progress:
+   - pending: Task not yet started
+   - in_progress: Currently working on (you can have multiple tasks in_progress at a time if they are not related to each other and can be run in parallel)
+   - completed: Task finished successfully
+
+2. **Task Management**:
+   - Update task status in real-time as you work
+   - Mark tasks complete IMMEDIATELY after finishing (don't batch completions)
+   - Complete current tasks before starting new ones
+   - Remove tasks that are no longer relevant from the list entirely
+
+3. **Task Completion Requirements**:
+   - ONLY mark a task as completed when you have FULLY accomplished it
+   - If you encounter errors, blockers, or cannot finish, keep the task as in_progress
+   - When blocked, create a new task describing what needs to be resolved
+
+4. **Task Breakdown**:
+   - Create specific, actionable items
+   - Break complex tasks into smaller, manageable steps
+   - Use clear, descriptive task names
+
+## Important To-Do List Usage Notes to Remember
+
+- The `write_todos` tool should never be called multiple times in parallel.
+- Don't be afraid to revise the To-Do list as you go. New information may reveal new tasks that need to be done, or old tasks that are irrelevant.
+
+Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.
 """
 
     # Status and feedback messages (not part of system prompt)

@@ -15,11 +15,12 @@ class WriteTodosTool(BaseTool):
     @property
     def description(self) -> str:
         return (
-            "Create or update the TODO list for task planning and tracking. "
+            "Create and manage a structured task list for your current work session. "
+            "This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. "
             "Use at the START of complex multi-step tasks (3+ steps). "
             "Mark tasks 'in_progress' BEFORE starting work, 'completed' IMMEDIATELY after finishing. "
             "You can revise the list as plans change - add, modify, or remove future tasks. "
-            "NEVER change already completed tasks. Keep exactly ONE task 'in_progress' at a time."
+            "NEVER change already completed tasks. You can have multiple tasks 'in_progress' if they run in parallel."
         )
 
     def get_schema(self) -> dict[str, Any]:
