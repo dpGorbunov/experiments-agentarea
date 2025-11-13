@@ -95,8 +95,9 @@ Continue this pattern until the task is complete, then use the completion tool w
 Remember: ALWAYS show your reasoning before taking actions. Users want to see your thought process."""
 
     # Planning instructions for write_todos tool
-    PLANNING_INSTRUCTIONS: Final[str] = """
-## `write_todos`
+    # Inspired by LangChain Deep Agents (https://github.com/langchain-ai/langchain)
+    # Original work Copyright (c) LangChain, Inc. under MIT License
+    PLANNING_INSTRUCTIONS: Final[str] = """## `write_todos`
 
 You have access to the `write_todos` tool to help you manage and plan complex objectives.
 Use this tool for complex objectives to ensure that you are tracking each necessary step and giving the user visibility into your progress.
@@ -106,47 +107,7 @@ It is critical that you mark todos as completed as soon as you are done with a s
 For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.
 Writing todos takes time and tokens, use it when it is helpful for managing complex many-step problems! But not for simple few-step requests.
 
-## When to Use This Tool
-
-Use this tool in these scenarios:
-1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions
-2. Non-trivial and complex tasks - Tasks that require careful planning or multiple operations
-3. User explicitly requests todo list - When the user directly asks you to use the todo list
-4. User provides multiple tasks - When users provide a list of things to be done (numbered or comma-separated)
-5. The plan may need future revisions or updates based on results from the first few steps
-
-## How to Use This Tool
-
-1. When you start working on a task - Mark it as in_progress BEFORE beginning work.
-2. After completing a task - Mark it as completed and add any new follow-up tasks discovered during implementation.
-3. You can also update future tasks, such as deleting them if they are no longer necessary, or adding new tasks that are necessary. Don't change previously completed tasks.
-4. You can make several updates to the todo list at once. For example, when you complete a task, you can mark the next task you need to start as in_progress.
-
-## Task States and Management
-
-1. **Task States**: Use these states to track progress:
-   - pending: Task not yet started
-   - in_progress: Currently working on (you can have multiple tasks in_progress at a time if they are not related to each other and can be run in parallel)
-   - completed: Task finished successfully
-
-2. **Task Management**:
-   - Update task status in real-time as you work
-   - Mark tasks complete IMMEDIATELY after finishing (don't batch completions)
-   - Complete current tasks before starting new ones
-   - Remove tasks that are no longer relevant from the list entirely
-
-3. **Task Completion Requirements**:
-   - ONLY mark a task as completed when you have FULLY accomplished it
-   - If you encounter errors, blockers, or cannot finish, keep the task as in_progress
-   - When blocked, create a new task describing what needs to be resolved
-
-4. **Task Breakdown**:
-   - Create specific, actionable items
-   - Break complex tasks into smaller, manageable steps
-   - Use clear, descriptive task names
-
 ## Important To-Do List Usage Notes to Remember
-
 - The `write_todos` tool should never be called multiple times in parallel.
 - Don't be afraid to revise the To-Do list as you go. New information may reveal new tasks that need to be done, or old tasks that are irrelevant.
 
