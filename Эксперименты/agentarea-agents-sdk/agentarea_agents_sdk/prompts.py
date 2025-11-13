@@ -107,6 +107,58 @@ It is critical that you mark todos as completed as soon as you are done with a s
 For simple objectives that only require a few steps, it is better to just complete the objective directly and NOT use this tool.
 Writing todos takes time and tokens, use it when it is helpful for managing complex many-step problems! But not for simple few-step requests.
 
+## Example Usage
+
+For a task like "Create config.py, verify it, update API key, search for production":
+
+write_todos(todos=[
+    {
+        "content": "Create config.py file with DATABASE_URL, API_KEY, and DEBUG variables",
+        "activeForm": "Creating config.py file",
+        "status": "in_progress"
+    },
+    {
+        "content": "Read config.py to verify contents",
+        "activeForm": "Verifying config.py contents",
+        "status": "pending"
+    },
+    {
+        "content": "Replace API_KEY value with production key",
+        "activeForm": "Updating API_KEY value",
+        "status": "pending"
+    },
+    {
+        "content": "Search for 'production' in all .py files",
+        "activeForm": "Searching for production references",
+        "status": "pending"
+    }
+])
+
+After completing the first task, update the list:
+
+write_todos(todos=[
+    {
+        "content": "Create config.py file with DATABASE_URL, API_KEY, and DEBUG variables",
+        "activeForm": "Creating config.py file",
+        "status": "completed"
+    },
+    {
+        "content": "Read config.py to verify contents",
+        "activeForm": "Verifying config.py contents",
+        "status": "in_progress"
+    },
+    {
+        "content": "Replace API_KEY value with production key",
+        "activeForm": "Updating API_KEY value",
+        "status": "pending"
+    },
+    {
+        "content": "Search for 'production' in all .py files",
+        "activeForm": "Searching for production references",
+        "status": "pending"
+    }
+])
+
 ## Important To-Do List Usage Notes to Remember
 - The `write_todos` tool should never be called multiple times in parallel.
 - Don't be afraid to revise the To-Do list as you go. New information may reveal new tasks that need to be done, or old tasks that are irrelevant.
