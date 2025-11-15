@@ -1,5 +1,6 @@
 """LLM model for encapsulating litellm interactions."""
 
+import asyncio
 import json
 import logging
 from collections.abc import AsyncIterator
@@ -554,8 +555,30 @@ class LLMModel:
 
             logger.info(f"Starting streaming LLM call for model {params['model']}")
 
-            # Make the streaming LLM call
-            response_stream = await litellm.acompletion(**params)
+            # Make the streaming LLM call with retry on rate limit
+            max_retries = 4
+            for attempt in range(max_retries):
+                try:
+                    response_stream = await litellm.acompletion(**params)
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    # Check if this is a rate limit error
+                    is_rate_limit = (
+                        hasattr(e, '__class__') and
+                        'RateLimitError' in e.__class__.__name__
+                    ) or 'rate_limit_error' in str(e).lower()
+
+                    if is_rate_limit and attempt < max_retries - 1:
+                        # Exponential backoff: 2s, 4s, 8s, 16s
+                        wait_time = 2 ** (attempt + 1)
+                        logger.warning(
+                            f"Rate limit hit (attempt {attempt + 1}/{max_retries}), "
+                            f"waiting {wait_time}s before retry..."
+                        )
+                        await asyncio.sleep(wait_time)
+                    else:
+                        # Not rate limit error, or final attempt failed
+                        raise
 
             # Process streaming response
             complete_content = ""  # Keep track for tool calls and final usage
