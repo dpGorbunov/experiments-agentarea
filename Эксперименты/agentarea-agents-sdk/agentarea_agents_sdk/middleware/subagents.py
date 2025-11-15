@@ -29,12 +29,16 @@ When you have access to `write_todos` tool AND the task has 3+ distinct steps:
 
 YOU MUST FOLLOW THIS SEQUENCE:
 1. FIRST: Create a complete plan using `write_todos` (list ALL steps, mark first as in_progress)
-2. SECOND: Work through your plan step-by-step, updating todos as you progress
-3. THIRD: ONLY AFTER creating the plan, you may delegate specific subtasks to `task` if isolation benefits them
+2. SECOND: YOU work through your plan step-by-step YOURSELF, updating todos as you progress
+3. THIRD: ONLY if you encounter a specific independent subtask that benefits from isolation, you may delegate THAT SUBTASK ONLY to `task`
 
-NEVER skip planning and go directly to task delegation for multi-step tasks. The user needs visibility into your planning process.
+CRITICAL: After creating the plan, YOU must execute it step-by-step YOURSELF. DO NOT delegate the entire main task to a subagent - that defeats the purpose of planning! The plan is for YOU to follow and execute, not for a subagent to execute.
 
-If the task is simple (1-2 steps) or already has a plan, you can use `task` directly.
+The user gave YOU the task because they want to see YOUR work process. Delegating everything to a subagent hides your work from the user.
+
+NEVER skip planning and go directly to task delegation for multi-step tasks. The user needs visibility into both your planning AND execution process.
+
+If the task is simple (1-2 steps), you can work on it directly without planning or delegation.
 
 Subagent lifecycle:
 1. **Spawn** → Provide clear role, instructions, and expected output
@@ -47,7 +51,9 @@ When NOT to use the task tool:
 - If the task is trivial (a few tool calls or simple lookup)
 - If delegating does not reduce token usage, complexity, or context switching
 - If splitting would add latency without benefit
-- NEVER delegate the main user task - only delegate specific subtasks within your plan
+- NEVER delegate the entire main user task to a subagent - your plan is for YOU to execute, not for delegation
+- If you created a plan with write_todos, YOU must work through it yourself - don't immediately delegate the entire task
+- Only delegate specific independent subtasks that genuinely benefit from isolation (e.g., parallel research, sandboxed execution)
 
 ## Important Task Tool Usage Notes to Remember
 - Whenever possible, parallelize the work that you do. This is true for both tool_calls, and for tasks. Whenever you have independent steps to complete - make tool_calls, or kick off tasks (subagents) in parallel to accomplish them faster. This saves time for the user, which is incredibly important.
@@ -144,6 +150,7 @@ class SubAgentMiddleware:
         subagents: list[dict[str, Any]] | None = None,
         general_purpose_agent: bool = True,
         system_prompt: str = TASK_SYSTEM_PROMPT,
+        parent_tools: list | None = None,
     ):
         """Initialize SubAgent middleware.
 
@@ -153,12 +160,14 @@ class SubAgentMiddleware:
             subagents: List of custom subagent specifications
             general_purpose_agent: Whether to include general-purpose subagent
             system_prompt: Custom system prompt override
+            parent_tools: Tools from parent agent to pass to subagents
         """
         self.default_agent_class = default_agent_class
         self.default_agent_kwargs = default_agent_kwargs or {}
         self.subagents = subagents or []
         self.general_purpose_agent = general_purpose_agent
         self.system_prompt = system_prompt
+        self.parent_tools = parent_tools or []
 
         self._compiled_agents: dict[str, Any] = {}
         self._task_tool: TaskTool | None = None
@@ -196,8 +205,11 @@ class SubAgentMiddleware:
     def _create_subagent(self, subagent_type: str) -> Any:
         """Create a subagent instance."""
         if subagent_type == "general-purpose" and self.general_purpose_agent:
-            # Create general-purpose agent with default tools
-            return self.default_agent_class(**self.default_agent_kwargs)
+            # Create general-purpose agent with default tools from parent
+            agent_kwargs = {**self.default_agent_kwargs}
+            if self.parent_tools:
+                agent_kwargs["tools"] = self.parent_tools
+            return self.default_agent_class(**agent_kwargs)
 
         # Look for custom subagent
         for spec in self.subagents:
@@ -207,6 +219,8 @@ class SubAgentMiddleware:
 
                 if "tools" in spec:
                     agent_kwargs["tools"] = spec["tools"]
+                elif self.parent_tools:
+                    agent_kwargs["tools"] = self.parent_tools
 
                 return self.default_agent_class(**agent_kwargs)
 

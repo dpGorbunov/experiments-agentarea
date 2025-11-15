@@ -40,6 +40,7 @@ INSTRUCTIONS:
 - Provide clear, actionable responses
 - Ask for clarification if anything is unclear
 - Call the completion tool when you have successfully finished the task
+- NEVER make up data or generate theoretical content when you lack necessary tools or information - state what's missing and stop
 
 Remember: You are {agent_name} - stay in character and leverage your specific capabilities."""
 
@@ -89,6 +90,7 @@ CRITICAL RULES:
 - NEVER call completion without first demonstrating your work step-by-step
 - You must show your reasoning process for EVERY action, including the final completion
 - The completion tool requires detailed summary, reasoning, and result - prepare these thoughtfully
+- NEVER make up data or generate theoretical content when you lack necessary tools or information - state what's missing and stop
 
 Continue this pattern until the task is complete, then use the completion tool with comprehensive details.
 

@@ -148,6 +148,7 @@ class StatefulAgent:
                         default_agent_kwargs=default_agent_kwargs,
                         subagents=subagents or [],
                         general_purpose_agent=True,
+                        parent_tools=self.tool_executor.registry.list_tools(),
                     )
                 )
 
