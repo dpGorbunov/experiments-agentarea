@@ -47,6 +47,7 @@ When NOT to use the task tool:
 - If the task is trivial (a few tool calls or simple lookup)
 - If delegating does not reduce token usage, complexity, or context switching
 - If splitting would add latency without benefit
+- NEVER delegate the main user task - only delegate specific subtasks within your plan
 
 ## Important Task Tool Usage Notes to Remember
 - Whenever possible, parallelize the work that you do. This is true for both tool_calls, and for tasks. Whenever you have independent steps to complete - make tool_calls, or kick off tasks (subagents) in parallel to accomplish them faster. This saves time for the user, which is incredibly important.
@@ -94,8 +95,9 @@ When using the Task tool, you must specify a subagent_type parameter to select w
 
 ## Example Usage
 
+# Example: After planning a multi-step task, delegate a specific research subtask
 task(
-    description="Search the codebase for StatefulAgent implementation. Analyze the middleware types, their integration points, execution order, and suggest one improvement. Return a detailed report with your findings.",
+    description="Research best practices for error handling in async Python. Focus on context managers, exception chaining, and logging patterns. Return a concise summary with 3-5 key recommendations.",
     subagent_type="general-purpose"
 )
 
