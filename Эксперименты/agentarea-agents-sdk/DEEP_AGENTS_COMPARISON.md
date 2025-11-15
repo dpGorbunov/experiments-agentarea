@@ -64,11 +64,6 @@ agent = StatefulAgent(
 - Оптимизация: детальные инструкции в описании tool + краткие в system prompt
 - LangChain copyright attribution
 
-### Тестирование
-- 9 интеграционных тестов в test_deep_agent_integration.py
-- Проверка всех компонентов middleware
-- Проверка file tools, context eviction, subagents
-
 ## Отличия от Deep Agents (LangChain)
 
 **Архитектурные:**
