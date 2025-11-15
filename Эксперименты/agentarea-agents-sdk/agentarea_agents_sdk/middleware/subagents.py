@@ -24,10 +24,17 @@ When to use the task tool:
 - When sandboxing improves reliability (e.g. code execution, structured searches, data formatting)
 - When you only care about the output of the subagent, and not the intermediate steps (ex. performing a lot of research and then returned a synthesized report, performing a series of computations or lookups to achieve a concise, relevant answer.)
 
-IMPORTANT: If you have access to the `write_todos` tool and the task has 3+ distinct steps:
-1. FIRST use `write_todos` to create a plan and track progress
-2. THEN you can optionally delegate individual subtasks using `task` if they benefit from isolation
-This ensures the user sees your planning process before you delegate work.
+CRITICAL RULE - Planning Before Delegation:
+When you have access to `write_todos` tool AND the task has 3+ distinct steps:
+
+YOU MUST FOLLOW THIS SEQUENCE:
+1. FIRST: Create a complete plan using `write_todos` (list ALL steps, mark first as in_progress)
+2. SECOND: Work through your plan step-by-step, updating todos as you progress
+3. THIRD: ONLY AFTER creating the plan, you may delegate specific subtasks to `task` if isolation benefits them
+
+NEVER skip planning and go directly to task delegation for multi-step tasks. The user needs visibility into your planning process.
+
+If the task is simple (1-2 steps) or already has a plan, you can use `task` directly.
 
 Subagent lifecycle:
 1. **Spawn** → Provide clear role, instructions, and expected output
