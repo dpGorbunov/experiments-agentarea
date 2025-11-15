@@ -229,6 +229,25 @@ class SubAgentMiddleware:
     async def before_tool_call(
         self, tool_call: dict, state: dict
     ) -> tuple[dict, dict[str, Any] | None]:
+        # Enforce planning-before-delegation rule programmatically
+        if tool_call.get("function", {}).get("name") == "task":
+            # Check if todos exist in state (plan was created)
+            todos = state.get("todos", [])
+
+            if not todos or len(todos) == 0:
+                # BLOCK task delegation without plan
+                tool_call["_skip_execution"] = True
+                tool_call["_result"] = {
+                    "success": False,
+                    "error": (
+                        "Planning required before delegation. You MUST create a plan using write_todos before delegating tasks. "
+                        "For multi-step work (3+ steps): FIRST create a complete plan showing all steps, "
+                        "THEN work through your plan step-by-step, and ONLY AFTER that you may delegate specific subtasks if isolation benefits them. "
+                        "This ensures the user sees your planning process. Call write_todos() with your plan first."
+                    )
+                }
+                return tool_call, None
+
         return tool_call, None
 
     async def after_tool_call(
